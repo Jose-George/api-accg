@@ -154,7 +154,7 @@ Prof. Jose George
 Alunos: 
 
 1.
-2.
+2.Joao Victor
 3.
 4.
 5.
