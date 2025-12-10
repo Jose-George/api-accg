@@ -161,7 +161,8 @@ Prof. Jose George
 Alunos:
 
 1. Humberto Silva
-2.
+2. João Vitor
 3. Kaymmi Nunes Barbosa
-4.
-5.
+4. Mateus Sebastian
+5. Samuel Lucas 
+
