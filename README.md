@@ -27,11 +27,13 @@ cd ACCG
 ### 2. Ative o ambiente virtual
 
 **No macOS/Linux:**
+
 ```bash
 source venv/bin/activate
 ```
 
 **No Windows:**
+
 ```bash
 venv\Scripts\activate
 ```
@@ -109,26 +111,31 @@ O projeto está configurado para usar **SQLite** como banco de dados. O arquivo 
 ## 📝 Comandos Úteis
 
 ### Criar uma nova aplicação Django
+
 ```bash
 python manage.py startapp nome_da_app
 ```
 
 ### Criar migrações
+
 ```bash
 python manage.py makemigrations
 ```
 
 ### Aplicar migrações
+
 ```bash
 python manage.py migrate
 ```
 
 ### Criar superusuário
+
 ```bash
 python manage.py createsuperuser
 ```
 
 ### Coletar arquivos estáticos
+
 ```bash
 python manage.py collectstatic
 ```
@@ -149,13 +156,13 @@ Este projeto está sob a licença MIT.
 
 Desenvolvido para o projeto ACCG.
 
-Prof. Jose George 
+Prof. Jose George
 
-Alunos: 
+Alunos:
 
-1.
-2.
-3.
-4.
+1. Humberto Silva
+2. João Vitor
+3. Kaymmi Nunes Barbosa
+4. Mateus Sebastian
 5. Samuel Lucas 
 
