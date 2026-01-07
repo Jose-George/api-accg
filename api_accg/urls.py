@@ -19,6 +19,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from associados.views import AssociadoViewSet 
 
+
 router = DefaultRouter()
 router.register(r'associados', AssociadoViewSet)
 
