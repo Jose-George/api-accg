@@ -1,0 +1,330 @@
+_______________________________________________________________________________
+
+📦 Passo 1.1: Configuração do App e Modelo de Usuário   -> (Sebastian/Humberto)
+
+   ✓ Criar app 'users':
+     → python manage.py startapp users
+
+   ✓ Registrar app:
+     → Adicionar 'users' em INSTALLED_APPS no settings.py
+
+   ✓ Criar modelo customizado:
+     → Arquivo: users/models.py
+     → Classe: User(AbstractUser)
+     → Import: from django.contrib.auth.models import AbstractUser
+
+   ✓ Configurar modelo de autenticação:
+     → Arquivo: settings.py
+     → Adicionar: AUTH_USER_MODEL = 'users.User'
+
+   ✓ Executar migrações:
+     → python manage.py makemigrations
+     → python manage.py migrate
+
+───────────────────────────────────────────────────────────────────────────────
+
+📦 Passo 1.2: Implementação da API REST de Usuários (CRUD) -> (Sebastian/Humberto)
+
+   ✓ Criar Serializer:
+     → Arquivo: users/serializers.py
+     → Classe: UserSerializer(serializers.ModelSerializer)
+     → Fields: ['id', 'first_name', 'username', 'password']
+     
+     ⚠️ IMPORTANTE: Sobrescrever método create():
+        def create(self, validated_data):
+            password = validated_data.pop('password')
+            user = User.objects.create(**validated_data)
+            user.set_password(password)  # Criptografa a senha
+            user.save()
+            return user
+
+   ✓ Criar ViewSet:
+     → Arquivo: users/views.py
+     → Classe: UserViewSet(viewsets.ModelViewSet)
+     → Atributos:
+       • queryset = User.objects.all()
+       • serializer_class = UserSerializer
+
+   ✓ Configurar Rotas:
+     → Arquivo: config/urls.py (ou urls.py principal)
+     → Importar: from rest_framework.routers import DefaultRouter
+     → Criar: router = DefaultRouter()
+     → Registrar: router.register(r'users', UserViewSet, basename='users')
+     → Incluir: path('api/', include(router.urls))
+
+   ✓ Testar Endpoints:
+     → POST   /api/users/     (Criar usuário)
+     → GET    /api/users/     (Listar usuários)
+     → GET    /api/users/{id}/ (Detalhar usuário)
+     → PUT    /api/users/{id}/ (Atualizar usuário)
+     → DELETE /api/users/{id}/ (Deletar usuário)
+     → Ferramentas: Bruno/ Postman / Insomnia / httpie
+
+_______________________________________________________________________________
+
+
+📦 Passo 1.1: Implementação da API REST de Associados (CRUD) -> (Kaymmi)
+
+   ✓ Criar Serializer:
+     → Arquivo: associados/serializers.py
+     → Classe: AssociadoSerializer(serializers.ModelSerializer)
+     → Fields: ['id', 'razao_social', 'nome_fantasia', 'cnpj', 'email', 
+                'telefone', 'endereco', 'contrato', 'ficha_cadastral', 
+                'data_vencimento', 'status', 'data_cadastro', 'data_atualizacao']
+     
+     ⚠️ IMPORTANTE: Validar CNPJ:
+        → Criar método validate_cnpj():
+          def validate_cnpj(self, value):
+              # Remove caracteres não numéricos
+              cnpj = re.sub(r'[^0-9]', '', value)
+              
+              # Verifica se tem 14 dígitos
+              if len(cnpj) != 14:
+                  raise serializers.ValidationError("CNPJ deve ter 14 dígitos")
+              
+              # Validação dos dígitos verificadores (opcional - implementar algoritmo)
+              # Por enquanto, apenas verifica formato
+              
+              return cnpj
+          
+          → Importar: import re no início do arquivo
+     
+     ⚠️ IMPORTANTE: Configurar upload de arquivos:
+        → No Meta da classe:
+          extra_kwargs = {
+              'contrato': {'write_only': True, 'required': False},
+              'ficha_cadastral': {'write_only': True, 'required': False},
+          }
+   
+   ✓ Criar ViewSet:
+     → Arquivo: associados/views.py
+     → Classe: AssociadoViewSet(viewsets.ModelViewSet)
+     → Atributos:
+       • queryset = Associado.objects.all()
+       • serializer_class = AssociadoSerializer
+       • permission_classes = [IsAuthenticated]  # Opcional
+     
+     ⚠️ OPcional: Adicionar filtros e buscas:
+        → from rest_framework import filters
+        → filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+        → search_fields = ['razao_social', 'cnpj', 'email']
+        → ordering_fields = ['data_cadastro', 'razao_social']
+   
+   ✓ Configurar Rotas:
+     → Arquivo: config/urls.py (ou urls.py principal)
+     → Importar: from rest_framework.routers import DefaultRouter
+     → Registrar: router.register(r'associados', AssociadoViewSet, basename='associados')
+     → Já deve estar incluído em: path('api/', include(router.urls))
+   
+   ✓ Configurar Media Files (para upload):
+     → Arquivo: settings.py
+     → Adicionar:
+       MEDIA_URL = '/media/'
+       MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+     
+     → Arquivo: urls.py principal
+     → Adicionar no final:
+       from django.conf import settings
+       from django.conf.urls.static import static
+       
+       if settings.DEBUG:
+           urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+   
+   ✓ Testar Endpoints:
+     → POST   /api/associados/           (Criar associado)
+     → GET    /api/associados/           (Listar associados)
+     → GET    /api/associados/?search=... (Buscar por razao_social, cnpj, email)
+     → GET    /api/associados/{id}/      (Detalhar associado)
+     → PUT    /api/associados/{id}/      (Atualizar associado)
+     → PATCH  /api/associados/{id}/      (Atualização parcial)
+     → DELETE /api/associados/{id}/      (Deletar associado)
+     → Ferramentas: Bruno / Postman / Insomnia / httpie
+
+───────────────────────────────────────────────────────────────────────────────
+
+
+📦 Passo 4.1: Implementação de Endpoint de Histórico do Associado -> (Kaymmi)
+
+   ⚠️ PRÉ-REQUISITOS:
+     → App 'associados' criado e funcionando (Passo 2.1 e 2.2)
+     → App 'financeiro' criado (Passo 3.1 e 3.2)
+     → Módulo de faturamento/pagamentos implementado (se aplicável)
+   
+   ✓ Criar Service para Histórico:
+     → Arquivo: associados/services.py (criar novo arquivo)
+     → Classe: AssociadoHistoricoService
+     → Método: get_historico_associado(associado_id)
+     
+     ⚠️ Exemplo de estrutura do service:
+        class AssociadoHistoricoService:
+            @staticmethod
+            def get_historico_associado(associado_id):
+                associado = Associado.objects.get(id=associado_id)
+                
+                # Consultar status financeiro (exemplo)
+                # pendentes = Fatura.objects.filter(associado=associado, status='PENDENTE')
+                # pagas = Fatura.objects.filter(associado=associado, status='PAGA')
+                
+                # Consolidar informações
+                historico = {
+                    'associado': {
+                        'id': associado.id,
+                        'razao_social': associado.razao_social,
+                        'cnpj': associado.cnpj,
+                        'status': associado.status,
+                        'data_vencimento': associado.data_vencimento,
+                    },
+                    'status_financeiro': {
+                        'total_pendente': 0,  # calcular
+                        'total_pago': 0,      # calcular
+                        'ultimo_pagamento': None,  # data
+                    },
+                    'pagamentos': [],  # lista de pagamentos
+                    'faturas': [],     # lista de faturas
+                    'eventos': [],     # eventos do associado (se houver)
+                }
+                
+                return historico
+   
+   ✓ Criar Serializer de Histórico:
+     → Arquivo: associados/serializers.py
+     → Classe: AssociadoHistoricoSerializer(serializers.Serializer)
+     → Fields (não depende de Model):
+       • associado (nested serializer ou dict)
+       • status_financeiro (nested serializer)
+       • pagamentos (lista)
+       • faturas (lista)
+       • eventos (lista)
+     
+     ⚠️ Exemplo de estrutura:
+        class AssociadoHistoricoSerializer(serializers.Serializer):
+            associado = AssociadoResumoSerializer(read_only=True)
+            status_financeiro = serializers.DictField()
+            pagamentos = serializers.ListField()
+            faturas = serializers.ListField()
+            eventos = serializers.ListField()
+   
+   ✓ Adicionar Action Customizada no ViewSet:
+     → Arquivo: associados/views.py
+     → Adicionar método no AssociadoViewSet:
+       
+       from rest_framework.decorators import action
+       from rest_framework.response import Response
+       from .services import AssociadoHistoricoService
+       from .serializers import AssociadoHistoricoSerializer
+       
+       @action(detail=True, methods=['get'], url_path='historico')
+       def historico(self, request, pk=None):
+           associado = self.get_object()
+           service = AssociadoHistoricoService()
+           dados_historico = service.get_historico_associado(associado.id)
+           
+           serializer = AssociadoHistoricoSerializer(dados_historico)
+           return Response(serializer.data)
+   
+   ✓ Testar Endpoint:
+     → GET /api/associados/{id}/historico/  (Consultar histórico)
+     → Exemplo: GET /api/associados/1/historico/
+     → Ferramentas: Bruno / Postman / Insomnia / httpie
+     
+     ⚠️ NOTA: Este endpoint retornará informações consolidadas do associado,
+        incluindo status financeiro e histórico de pagamentos/faturas.
+
+═══════════════════════════════════════════════════════════════════════════════ 
+
+📦 Passo 3.1: Configuração do App e Modelo de Plano de Contas -> (Samuel)
+   
+   ✓ Criar app 'financeiro':
+     → python manage.py startapp financeiro
+   
+   ✓ Registrar app:
+     → Adicionar 'financeiro' em INSTALLED_APPS no settings.py
+   
+   ✓ Criar modelo PlanoDeContas:
+     → Arquivo: financeiro/models.py
+     → Classe: PlanoDeContas(models.Model)
+     → Campos sugeridos:
+       • id (auto)
+       • codigo (CharField, max_length=20, unique=True)
+       • descricao (CharField, max_length=255)
+       • tipo (CharField com choices: RECEITA, DESPESA)
+       • categoria (CharField, max_length=100, null=True, blank=True)
+       • ativo (BooleanField, default=True)
+       • observacoes (TextField, null=True, blank=True)
+       • data_cadastro (DateTimeField, auto_now_add=True)
+       • data_atualizacao (DateTimeField, auto_now=True)
+     
+     ⚠️ IMPORTANTE: Adicionar método __str__:
+        def __str__(self):
+            return f"{self.codigo} - {self.descricao}"
+     
+     ⚠️ IMPORTANTE: Adicionar Meta:
+        class Meta:
+            verbose_name = "Plano de Contas"
+            verbose_name_plural = "Planos de Contas"
+            ordering = ['codigo']
+   
+   ✓ Executar migrações:
+     → python manage.py makemigrations financeiro
+     → python manage.py migrate
+
+───────────────────────────────────────────────────────────────────────────────
+
+📦 Passo 3.2: Implementação da API REST de Plano de Contas (CRUD) -> (Samuel)
+
+   ✓ Criar Serializer:
+     → Arquivo: financeiro/serializers.py
+     → Classe: PlanoDeContasSerializer(serializers.ModelSerializer)
+     → Fields: ['id', 'codigo', 'descricao', 'tipo', 'categoria', 
+                'ativo', 'observacoes', 'data_cadastro', 'data_atualizacao']
+     
+     ⚠️ IMPORTANTE: Validação de código:
+        → Criar método validate_codigo():
+          def validate_codigo(self, value):
+              # Verifica se código já existe (exceto na atualização)
+              if self.instance is None:  # Se for criação
+                  if PlanoDeContas.objects.filter(codigo=value).exists():
+                      raise serializers.ValidationError("Código já existe")
+              return value
+     
+     ⚠️ IMPORTANTE: Validação de tipo:
+        → Criar método validate_tipo():
+          def validate_tipo(self, value):
+              tipos_validos = ['RECEITA', 'DESPESA']
+              if value not in tipos_validos:
+                  raise serializers.ValidationError(
+                      f"Tipo deve ser um dos seguintes: {', '.join(tipos_validos)}"
+                  )
+              return value
+   
+   ✓ Criar ViewSet:
+     → Arquivo: financeiro/views.py
+     → Classe: PlanoDeContasViewSet(viewsets.ModelViewSet)
+     → Atributos:
+       • queryset = PlanoDeContas.objects.filter(ativo=True)
+       • serializer_class = PlanoDeContasSerializer
+       • permission_classes = [IsAuthenticated]  # Opcional
+     
+     ⚠️ OPcional: Adicionar filtros:
+        → from rest_framework import filters
+        → filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+        → search_fields = ['codigo', 'descricao', 'categoria']
+        → ordering_fields = ['codigo', 'descricao', 'tipo']
+        → filterset_fields = ['tipo', 'ativo', 'categoria']
+   
+   ✓ Configurar Rotas:
+     → Arquivo: config/urls.py (ou urls.py principal)
+     → Importar: from rest_framework.routers import DefaultRouter
+     → Registrar: router.register(r'planos-contas', PlanoDeContasViewSet, basename='planos-contas')
+     → Já deve estar incluído em: path('api/', include(router.urls))
+   
+   ✓ Testar Endpoints:
+     → POST   /api/planos-contas/           (Criar plano de contas)
+     → GET    /api/planos-contas/           (Listar planos de contas)
+     → GET    /api/planos-contas/?tipo=RECEITA (Filtrar por tipo)
+     → GET    /api/planos-contas/?search=... (Buscar por código, descrição)
+     → GET    /api/planos-contas/{id}/      (Detalhar plano de contas)
+     → PUT    /api/planos-contas/{id}/      (Atualizar plano de contas)
+     → PATCH  /api/planos-contas/{id}/      (Atualização parcial)
+     → DELETE /api/planos-contas/{id}/      (Deletar plano de contas - soft delete)
+     → Ferramentas: Bruno / Postman / Insomnia / httpie
