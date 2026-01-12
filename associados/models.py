@@ -15,11 +15,11 @@ class Associado(models.Model):
     telefone = models.CharField(max_length=20)
     endereco = models.TextField()
     
-    # Uploads de ficheiros
+    # uploads de ficheiros
     contrato = models.FileField(upload_to='contratos/', null=True, blank=True)
     ficha_cadastral = models.FileField(upload_to='fichas/', null=True, blank=True)
     
-    # Datas
+    # datas
     data_vencimento = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='ATIVO')
     data_cadastro = models.DateTimeField(auto_now_add=True)
