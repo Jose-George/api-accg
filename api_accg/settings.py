@@ -41,7 +41,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'associados',
+    'users'
 ]
+
+# Define o modelo de usuário customizado do projeto
+AUTH_USER_MODEL = 'users.User'  
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -53,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'api_accg.urls'
 
