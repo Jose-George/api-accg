@@ -22,8 +22,8 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/', include('cobranca.urls')),
 ]
 
-# visualizar os arquivos enviados no navegador durante o desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
