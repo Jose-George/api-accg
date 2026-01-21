@@ -6,10 +6,12 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from associados.views import AssociadoViewSet
 from financeiro.views import PlanoDeContasViewSet
+from users.views import UserViewSet
 
 router = DefaultRouter()
-router.register(
-    r'associados', AssociadoViewSet, basename='associados',)
+
+router.register(r'associados', AssociadoViewSet, basename='associados')
+router.register(r'users', UserViewSet, basename='users')
 
 router.register(
     r'planos-contas',
@@ -23,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/', include('cobranca.urls')),
+    path('api/', include(router.urls))
 ]
 
 if settings.DEBUG:
