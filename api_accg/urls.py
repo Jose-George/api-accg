@@ -1,4 +1,4 @@
-
+from django.urls import path
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -7,6 +7,7 @@ from rest_framework.routers import DefaultRouter
 from associados.views import AssociadoViewSet
 from financeiro.views import PlanoDeContasViewSet
 from users.views import UserViewSet
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 router = DefaultRouter()
 
@@ -25,7 +26,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/', include('cobranca.urls')),
-    path('api/', include(router.urls))
+    path('api/', include(router.urls)),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),  # Gera o schema OpenAPI (JSON) da API
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),  # Interface gráfica do Swagger UI baseada no schema OpenAPI
 ]
 
 if settings.DEBUG:
