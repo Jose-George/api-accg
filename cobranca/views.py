@@ -1,39 +1,14 @@
-from django.shortcuts import render
 from rest_framework import viewsets, filters
-from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend 
 from .models import Cobranca
 from .serializers import CobrancaSerializer
 
 class CobrancaViewSet(viewsets.ModelViewSet):
-
-    queryset = Cobranca.objects.all()
+    # Otimização com select_related
+    queryset = Cobranca.objects.select_related('associado', 'plano_conta').all()
     serializer_class = CobrancaSerializer
-    permission_classes = [IsAuthenticated]
-
-    filter_backends = [
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
-
-    search_fields = [
-        'descricao',
-        'plano_conta__codigo',
-        'plano_conta__descricao',
-    ]
-
-    ordering_fields = [
-        'data_vencimento',
-        'valor',
-        'status',
-    ]
-
-    filterset_fields = [
-        'status',
-        'plano_conta',
-    ]
-
-    def perform_create(self, serializer):
-
-        cobranca = serializer.save()
-        # integração com gateway bota aqui
-        return cobranca
+    
+    # Corrigindo os filtros 
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['status', 'plano_conta']
+    search_fields = ['nosso_numero', 'codigo_gateway']
