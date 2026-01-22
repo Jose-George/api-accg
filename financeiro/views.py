@@ -1,39 +1,20 @@
-#from django.shortcuts import render
-
-from rest_framework import viewsets, filters
-from rest_framework.permissions import IsAuthenticated
-
+from rest_framework import viewsets, response, status
 from .models import PlanoDeContas
 from .serializers import PlanoDeContasSerializer
 
 class PlanoDeContasViewSet(viewsets.ModelViewSet):
-    queryset = PlanoDeContas.objects.filter(ativo=True)
     serializer_class = PlanoDeContasSerializer
-    permission_classes = [IsAuthenticated]
 
-    filter_backends = [
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
+    def get_queryset(self):
+        # Para listagem (GET /api/financeiro/plano-de-contas/), mostra apenas ativos
+        if self.action == 'list':
+            return PlanoDeContas.objects.filter(ativo=True)
+        # Para detalhes, edições ou exclusões, permite acessar os inativos
+        return PlanoDeContas.objects.all()
 
-    search_fields = [
-        'codigo',
-        'descricao',
-        'categoria',
-    ]
-
-    ordering_fields = [
-        'codigo',
-        'descricao',
-        'tipo',
-    ]
-
-    filterset_fields = [
-        'tipo',
-        'ativo',
-        'categoria',
-    ]
-
-    def perform_destroy(self, instance):
+    def destroy(self, request, *args, **kwargs):
+        # Soft Delete: Em vez de apagar, desativa
+        instance = self.get_object()
         instance.ativo = False
         instance.save()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
