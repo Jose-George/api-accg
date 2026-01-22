@@ -1,30 +1,15 @@
-from .models import Associado
+from rest_framework import serializers # Importação necessária
+from .utils import validar_cpf, validar_cnpj
 
-class AssociadoHistoricoService:
+class AssociadoService:
     @staticmethod
-    def get_historico_associado(associado_id):
-        try:
-            associado = Associado.objects.get(id=associado_id)
-            
-            historico = {
-                'associado': {
-                    'id': associado.id,
-                    'razao_social': associado.razao_social,
-                    'cnpj': associado.cnpj,
-                    'status': associado.status,
-                    'data_vencimento': associado.data_vencimento,
-                },
-                'status_financeiro': {
-                    'total_pendente': 0.0,
-                    'total_pago': 0.0,
-                    'ultimo_pagamento': None,
-                },
-                'pagamentos': [],  # Pagamento.objects.filter(...)
-                'faturas': [],     # Fatura.objects.filter(...)
-                'eventos': [
-                    {"data": associado.data_cadastro, "descricao": "Cadastro realizado no sistema"}
-                ],
-            }
-            return historico
-        except Associado.DoesNotExist:
-            return None
+    def validar_documento(tipo_pessoa, documento):
+        if tipo_pessoa == 'PF':
+            if not validar_cpf(documento):
+                # Trocamos ValueError por ValidationError
+                raise serializers.ValidationError({"documento": "CPF inválido."})
+        elif tipo_pessoa == 'PJ':
+            if not validar_cnpj(documento):
+                # Trocamos ValueError por ValidationError
+                raise serializers.ValidationError({"documento": "CNPJ inválido."})
+        return True
