@@ -17,9 +17,3 @@ router.register(
     CobrancaViewSet,
     basename='cobrancas'
 )
-
-router.register(
-    r'cobrancas',
-    CobrancaViewSet,
-    basename='cobrancas'
-)

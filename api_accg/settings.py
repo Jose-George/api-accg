@@ -38,6 +38,10 @@ INSTALLED_APPS = [
 # Define o modelo de usuário customizado do projeto
 AUTH_USER_MODEL = 'users.User'  
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -145,3 +149,10 @@ CORS_ALLOW_ALL_ORIGINS = True  # Apenas para desenvolvimento
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'emaildetestesauto@gmail.com'
+EMAIL_HOST_PASSWORD = Senha de app do Gmail
