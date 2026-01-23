@@ -25,7 +25,7 @@ class Associado(models.Model):
     data_cadastro = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 
-    # salva o ultimo email de aviso evitando envios duplicados
+    # salva o ultimo email de aviso evitando envios duplicados:
     data_ultimo_aviso = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):

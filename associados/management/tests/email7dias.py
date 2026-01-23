@@ -1,3 +1,5 @@
+# Fazer testes programaticos do comando de envio de email 7 dias antes do vencimento
+
 from associados.models import Associado
 from datetime import date, timedelta
 from django.core.management import call_command
@@ -5,7 +7,7 @@ from django.core.management import call_command
 # 1. Criar (ou atualizar) um associado para teste
 # vencimento para exatamente daqui a 7 dias
 data_teste = date.today() + timedelta(days=7)
-email_destino = 'kaymminunes@gmail.com' # E-mail pessoal para testes
+email_destino = 'kaymmiknb@gmail.com' # E-mail pessoal para testes
 
 obj, created = Associado.objects.update_or_create(
     cnpj="99999999000199",

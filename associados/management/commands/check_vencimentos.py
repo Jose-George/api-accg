@@ -41,4 +41,4 @@ class Command(BaseCommand):
         mensagem = f"Olá, {associado.razao_social}.\nSeu contrato vence em {dias} dias ({associado.data_vencimento.strftime('%d/%m/%Y')})."
         email_de = getattr(settings, 'EMAIL_HOST_USER', 'sistema@apiaccg.com')
         
-        send_mail(assunto, mensagem, email_de, [associado.email])
+        send_mail(assunto, mensagem, email_de, [associado.email]) 
