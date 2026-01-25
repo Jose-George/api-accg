@@ -111,10 +111,17 @@ Para ambientes de **Produção**, é recomendada a migração para bancos de dad
    ```
 
 4. **Variáveis de Ambiente**
-   O projeto utiliza `settings.py` padrão. Para produção, configure:
-   - `SECRET_KEY`
-   - `DEBUG=False`
-   - `ALLOWED_HOSTS`
+   
+   Crie um arquivo `.env` na raiz do projeto (baseado no exemplo abaixo) para configurar as credenciais de segurança:
+
+   ```env
+   SECRET_KEY='sua-chave-secreta-aqui'
+   DEBUG=True
+   ALLOWED_HOSTS=127.0.0.1,localhost
+   EMAIL_HOST_USER=seu-email@gmail.com
+   EMAIL_HOST_PASSWORD='sua-senha-de-app'
+   WEBHOOK_TOKEN='seu-token-secreto-para-webhook'
+   ```
 
 5. **Execute as migrações**
    ```bash
@@ -150,7 +157,7 @@ A documentação interativa (Swagger UI) é gerada automaticamente pelo `drf-spe
 | **GET** | `/api/associados/` | Listagem de associados |
 | **GET** | `/api/associados/{id}/historico/` | Histórico financeiro e cadastral consolidado |
 | **POST** | `/api/cobrancas/` | Criar nova cobrança |
-| **POST** | `/api/webhook/` | Receber notificação de pagamento (Webhook) |
+| **POST** | `/api/webhook/` | Receber notificação de pagamento (Requer Header `X-Webhook-Token`) |
 | **GET** | `/api/planos-contas/` | Listar plano de contas (apenas ativos) |
 
 ---
@@ -164,8 +171,9 @@ A documentação interativa (Swagger UI) é gerada automaticamente pelo `drf-spe
 - **Tratamento de Erros**: Respostas HTTP semânticas (400, 401, 404, 500) padronizadas pelo DRF.
 - **Segurança**:
     - `CORS` configurado para permitir origens específicas.
-    - Autenticação via Session (Dev) e extensível para JWT.
-    - Senhas hashadas via PBKDF2 (Padrão Django).
+    - **Autenticação Obrigatória**: Endpoints protegidos por padrão (`IsAuthenticated`).
+    - **Gestão de Segredos**: Uso de variáveis de ambiente (`.env`).
+    - **Webhooks**: Validação de Token de Segurança no Header.
 
 ---
 
@@ -176,7 +184,7 @@ A arquitetura modular permite fácil expansão. Possibilidades futuras:
 1. **Gateway de Pagamento Real**: Implementar a lógica no `cobranca/views.py` e `webhooks.py` para integrar com ASAAS, Stripe ou Pagar.me.
 2. **Dockerização**: Criar `Dockerfile` e `docker-compose.yml` para orquestração de containers.
 3. **Tasks Assíncronas**: Usar Celery para envio de emails de cobrança e processamento pesado.
-4. **Testes Automatizados**: Aumentar cobertura de testes em `tests.py` de cada app.
+4. **Testes Automatizados**: Cobertura de testes implementada para `users`, `associados`, `financeiro` e `cobranca`.
 
 ---
 
