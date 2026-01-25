@@ -1,168 +1,201 @@
-# API ACCG
+# API de Gerenciamento ACCG
 
-API REST desenvolvida com Django REST Framework para o projeto ACCG.
+## 📌 Visão Geral
 
-## 🚀 Tecnologias
+A **API ACCG** é um sistema backend robusto desenvolvido para gerenciar as operações da ACCG. O sistema centraliza o controle de usuários, associados e movimentações financeiras, oferecendo uma interface RESTful segura e documentada para integração com frontends e serviços externos.
 
-- **Python 3.13**
-- **Django 4.2.7** - Framework web Python
-- **Django REST Framework 3.14.0** - Framework para construção de APIs REST
-- **django-cors-headers 4.3.1** - Middleware para lidar com CORS
-- **SQLite** - Banco de dados (desenvolvimento)
+### 🎯 Propósito e Problema Resolvido
 
-## 📋 Pré-requisitos
+O sistema resolve a necessidade de centralização e controle digital dos processos da associação, substituindo controles manuais ou descentralizados. Ele permite:
+- Gestão unificada da base de associados com histórico completo.
+- Controle financeiro através de plano de contas e emissão de cobranças.
+- Automação de status de pagamentos via integração (Webhooks).
 
-- Python 3.8 ou superior
-- pip (gerenciador de pacotes Python)
+---
 
-## 🔧 Instalação e Configuração
+## 🚀 Principais Funcionalidades
 
-### 1. Clone o repositório (se aplicável)
+### 1. Gerenciamento de Usuários (`users`)
+- Autenticação e Autorização (JWT/Session).
+- Cadastro de operadores do sistema com credenciais seguras.
+- Modelo de usuário estendido do Django (`AbstractUser`).
 
-```bash
-git clone <url-do-repositorio>
-cd ACCG
-```
+### 2. Gestão de Associados (`associados`)
+- **CRUD Completo**: Cadastro de Razão Social, CNPJ, Contatos, etc.
+- **Gestão de Arquivos**: Upload e armazenamento de Contratos e Fichas Cadastrais.
+- **Regras de Negócio**:
+    - Definição automática de vencimento do associado (1 ano a partir do cadastro).
+    - Status controlados: `ATIVO`, `INATIVO`, `SUSPENSO`.
+- **Histórico Unificado**: Endpoint dedicado para consolidar dados cadastrais e financeiros do associado.
 
-### 2. Ative o ambiente virtual
+### 3. Módulo Financeiro (`financeiro`)
+- **Plano de Contas**: Estrutura hierárquica para categorizar Receitas e Despesas.
+- **Soft Delete**: Exclusão lógica de contas (campo `ativo=False`), preservando integridade histórica.
 
-**No macOS/Linux:**
+### 4. Cobranças e Pagamentos (`cobranca`)
+- **Emissão**: Geração de cobranças vinculadas ao Plano de Contas.
+- **Integração**: Campos preparados para `codigo_gateway` e `link_pagamento`.
+- **Webhooks**: Endpoint público para receber callbacks de gateways de pagamento e baixar cobranças automaticamente.
 
-```bash
-source venv/bin/activate
-```
+---
 
-**No Windows:**
+## 🏗️ Arquitetura e Estrutura
 
-```bash
-venv\Scripts\activate
-```
+O projeto segue o padrão **MVT (Model-View-Template)** do Django, adaptado para API REST com **Django REST Framework (DRF)**.
 
-### 3. Instale as dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Execute as migrações do banco de dados
-
-```bash
-python manage.py migrate
-```
-
-### 5. Crie um superusuário (opcional)
-
-```bash
-python manage.py createsuperuser
-```
-
-## ▶️ Como Executar o Projeto
-
-### 1. Ative o ambiente virtual
-
-```bash
-source venv/bin/activate
-```
-
-### 2. Execute o servidor de desenvolvimento
-
-```bash
-python manage.py runserver
-```
-
-O servidor estará disponível em: `http://127.0.0.1:8000/`
-
-### 3. Acesse os endpoints
-
-- **Admin Django**: `http://127.0.0.1:8000/admin/`
-- **API REST Framework**: `http://127.0.0.1:8000/api-auth/`
-
-## 📁 Estrutura do Projeto
+### Estrutura de Pastas
 
 ```
-ACCG/
-├── api_accg/          # Configurações do projeto Django
-│   ├── __init__.py
-│   ├── settings.py    # Configurações do projeto
-│   ├── urls.py        # URLs principais
-│   ├── wsgi.py
-│   └── asgi.py
-├── manage.py          # Script de gerenciamento do Django
-├── requirements.txt   # Dependências do projeto
-├── .gitignore        # Arquivos ignorados pelo Git
-├── README.md         # Este arquivo
-└── venv/             # Ambiente virtual Python
+api-accg/
+├── api_accg/          # Configurações globais (Settings, URLs, WSGI)
+├── associados/        # App: Gestão de empresas associadas e documentos
+│   ├── models.py      # Entidade Associado e regras de data
+│   ├── services.py    # Lógica de negócios (Histórico consolidado)
+│   └── views.py       # ViewSets e Actions
+├── cobranca/          # App: Gestão financeira operacional
+│   ├── models.py      # Entidade Cobranca
+│   ├── webhooks.py    # Processamento de callbacks de pagamento
+│   └── views.py       # ViewSets
+├── financeiro/        # App: Estrutura contábil
+│   ├── models.py      # Plano de Contas
+│   └── views.py       # ViewSets com Soft Delete
+├── users/             # App: Controle de acesso
+└── manage.py          # CLI do Django
 ```
+
+### Tecnologias Utilizadas
+
+- **Linguagem**: Python 3.13+
+- **Framework Web**: Django 4.2.7
+- **API Toolkit**: Django REST Framework (DRF) 3.14
+- **Banco de Dados**: SQLite (Desenvolvimento) / PostgreSQL (Recomendado Prod.)
+- **Documentação**: drf-spectacular (Swagger/OpenAPI 3)
+- **Segurança**: django-cors-headers
 
 ## 🗄️ Banco de Dados
 
-O projeto está configurado para usar **SQLite** como banco de dados. O arquivo `db.sqlite3` será criado automaticamente após executar as migrações.
+O projeto está configurado inicialmente para utilizar **SQLite**, ideal para desenvolvimento e testes rápidos pela sua simplicidade e zero configuração (arquivo `db.sqlite3`).
 
-## 🔐 Configurações de Segurança
+Para ambientes de **Produção**, é recomendada a migração para bancos de dados robustos como **PostgreSQL** ou **MySQL**. A abstração do ORM do Django permite essa transição apenas ajustando as configurações em `settings.py`.
 
-⚠️ **Importante**: Este projeto está configurado para desenvolvimento. Para produção:
+---
 
-1. Altere `DEBUG = False` em `settings.py`
-2. Configure `ALLOWED_HOSTS` adequadamente
-3. Use uma `SECRET_KEY` segura e única
-4. Configure `CORS_ALLOW_ALL_ORIGINS = False` e defina `CORS_ALLOWED_ORIGINS` com as origens permitidas
-5. Use um banco de dados de produção (PostgreSQL, MySQL, etc.)
+## ⚙️ Configuração e Execução
 
-## 📝 Comandos Úteis
+### Pré-requisitos
+- Python 3.10 ou superior
+- Git
 
-### Criar uma nova aplicação Django
+### Passo a Passo (Local)
 
-```bash
-python manage.py startapp nome_da_app
-```
+1. **Clone o repositório**
+   ```bash
+    git clone "URL DO REPOSITORIO"
+    cd api-accg
+   ```
 
-### Criar migrações
+2. **Crie e ative o ambiente virtual**
+   ```bash
+   # Windows
+   python -m venv venv
+   .\venv\Scripts\activate
 
-```bash
-python manage.py makemigrations
-```
+   # Linux/Mac
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-### Aplicar migrações
+3. **Instale as dependências**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-python manage.py migrate
-```
+4. **Variáveis de Ambiente**
+   O projeto utiliza `settings.py` padrão. Para produção, configure:
+   - `SECRET_KEY`
+   - `DEBUG=False`
+   - `ALLOWED_HOSTS`
 
-### Criar superusuário
+5. **Execute as migrações**
+   ```bash
+   python manage.py migrate
+   ```
 
-```bash
-python manage.py createsuperuser
-```
+6. **Crie um superusuário**
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-### Coletar arquivos estáticos
+7. **Inicie o servidor**
+   ```bash
+   python manage.py runserver
+   ```
 
-```bash
-python manage.py collectstatic
-```
+O sistema estará acessível em: `http://127.0.0.1:8000/`
 
-## 🤝 Contribuindo
+---
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## 📚 Documentação da API
+
+A documentação interativa (Swagger UI) é gerada automaticamente pelo `drf-spectacular`.
+
+- **Swagger UI**: [`http://127.0.0.1:8000/api/docs/`](http://127.0.0.1:8000/api/docs/)
+- **Download Schema (YAML/JSON)**: [`http://127.0.0.1:8000/api/schema/`](http://127.0.0.1:8000/api/schema/)
+
+### Principais Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| **POST** | `/api/users/` | Cadastro de usuários |
+| **GET** | `/api/associados/` | Listagem de associados |
+| **GET** | `/api/associados/{id}/historico/` | Histórico financeiro e cadastral consolidado |
+| **POST** | `/api/cobrancas/` | Criar nova cobrança |
+| **POST** | `/api/webhook/` | Receber notificação de pagamento (Webhook) |
+| **GET** | `/api/planos-contas/` | Listar plano de contas (apenas ativos) |
+
+---
+
+## ✅ Boas Práticas e Padrões
+
+- **Padrão de Código**: PEP-8.
+- **API Design**:
+    - Uso de `ViewSets` e `Routers` para padronização de URLs.
+    - `Serializers` para validação e transformação de dados.
+- **Tratamento de Erros**: Respostas HTTP semânticas (400, 401, 404, 500) padronizadas pelo DRF.
+- **Segurança**:
+    - `CORS` configurado para permitir origens específicas.
+    - Autenticação via Session (Dev) e extensível para JWT.
+    - Senhas hashadas via PBKDF2 (Padrão Django).
+
+---
+
+## 📈 Escalabilidade e Evolução
+
+A arquitetura modular permite fácil expansão. Possibilidades futuras:
+
+1. **Gateway de Pagamento Real**: Implementar a lógica no `cobranca/views.py` e `webhooks.py` para integrar com ASAAS, Stripe ou Pagar.me.
+2. **Dockerização**: Criar `Dockerfile` e `docker-compose.yml` para orquestração de containers.
+3. **Tasks Assíncronas**: Usar Celery para envio de emails de cobrança e processamento pesado.
+4. **Testes Automatizados**: Aumentar cobertura de testes em `tests.py` de cada app.
+
+---
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT.
+Este projeto está licenciado sob a Licença MIT 
 
-## 👨‍💻 Autor
+---
 
-Desenvolvido para o projeto ACCG.
+## 👨‍💻 Autores
 
-Prof. Jose George
+Este projeto foi desenvolvido como parte das atividades acadêmicas do curso, sob orientação do **Prof. Jose George**.
 
-Alunos:
+**Equipe de Desenvolvimento:**
+- Humberto Silva
+- João Vitor
+- Kaymmi Nunes Barbosa
+- Mateus Sebastian
+- Samuel Lucas
 
-1. Humberto Silva
-2. João Vitor
-3. Kaymmi Nunes Barbosa
-4. Mateus Sebastian
-5. Samuel Lucas 
+---
 
