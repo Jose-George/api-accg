@@ -13,13 +13,57 @@ class AssociadoSerializer(serializers.ModelSerializer):
         read_only_fields = ['data_vencimento']
         
     def validate_cnpj(self, value):
-        cnpj_limpo = re.sub(r'[^0-9]', '', value)
+        cnpj = re.sub(r'[^0-9]', '', value)
         
-        # se não tiver 14 dígitos, o Django DEVE retornar erro 400
-        if len(cnpj_limpo) != 14:
-            raise serializers.ValidationError(f"CNPJ inválido! Recebemos {len(cnpj_limpo)} dígitos, mas precisamos de 14.")
+        if len(cnpj) != 14:
+            raise serializers.ValidationError("O CNPJ deve ter exatamente 14 dígitos.")
             
-        return cnpj_limpo
+        # Verifica se todos os dígitos são iguais (ex: 00000000000000)
+        if len(set(cnpj)) == 1:
+            raise serializers.ValidationError("CNPJ inválido (dígitos repetidos).")
+
+        # Validação do primeiro dígito verificador
+        tamanho = 12
+        numeros = cnpj[:tamanho]
+        digitos = cnpj[tamanho:]
+        soma = 0
+        pos = tamanho - 7
+        for i in range(tamanho, 0, -1):
+            soma += int(numeros[tamanho - i]) * pos
+            pos -= 1
+            if pos < 2:
+                pos = 9
+        
+        resultado = soma % 11
+        if resultado < 2:
+            digito_1 = 0
+        else:
+            digito_1 = 11 - resultado
+
+        if digito_1 != int(digitos[0]):
+            raise serializers.ValidationError("CNPJ inválido (erro de verificação).")
+
+        # Validação do segundo dígito verificador
+        tamanho = 13
+        numeros = cnpj[:tamanho]
+        soma = 0
+        pos = tamanho - 7
+        for i in range(tamanho, 0, -1):
+            soma += int(numeros[tamanho - i]) * pos
+            pos -= 1
+            if pos < 2:
+                pos = 9
+
+        resultado = soma % 11
+        if resultado < 2:
+            digito_2 = 0
+        else:
+            digito_2 = 11 - resultado
+
+        if digito_2 != int(digitos[1]):
+             raise serializers.ValidationError("CNPJ inválido (erro de verificação).")
+            
+        return cnpj
     
 class AssociadoHistoricoSerializer(serializers.Serializer):
     associado = serializers.DictField()
