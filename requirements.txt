@@ -1,8 +1,7 @@
 Django==4.2.7
 djangorestframework==3.14.0
 django-cors-headers==4.3.1
-drf-spectacular
-python-decouple
-
-
-
+django-filter==23.5
+djangorestframework-simplejwt==5.3.1
+drf-spectacular==0.27.2
+python-decouple==3.8
