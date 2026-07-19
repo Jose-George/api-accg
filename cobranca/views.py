@@ -1,39 +1,59 @@
-from django.shortcuts import render
-from rest_framework import viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
 from rest_framework.permissions import IsAuthenticated
+
 from .models import Cobranca
 from .serializers import CobrancaSerializer
+from .services import CobrancaService
+
 
 class CobrancaViewSet(viewsets.ModelViewSet):
+    queryset = (
+        Cobranca.objects
+        .select_related(
+            "associado",
+            "plano_conta",
+        )
+        .all()
+    )
 
-    queryset = Cobranca.objects.all()
     serializer_class = CobrancaSerializer
     permission_classes = [IsAuthenticated]
 
     filter_backends = [
+        DjangoFilterBackend,
         filters.SearchFilter,
         filters.OrderingFilter,
     ]
 
+    filterset_fields = [
+        "status",
+        "associado",
+        "plano_conta",
+        "data_vencimento",
+    ]
+
     search_fields = [
-        'descricao',
-        'plano_conta__codigo',
-        'plano_conta__descricao',
+        "descricao",
+        "codigo_gateway",
+        "associado__razao_social",
+        "associado__cnpj",
+        "plano_conta__codigo",
+        "plano_conta__descricao",
     ]
 
     ordering_fields = [
-        'data_vencimento',
-        'valor',
-        'status',
+        "data_criacao",
+        "data_vencimento",
+        "valor",
+        "status",
     ]
 
-    filterset_fields = [
-        'status',
-        'plano_conta',
-    ]
+    ordering = ["-data_criacao"]
 
     def perform_create(self, serializer):
-
-        cobranca = serializer.save()
-        # integração com gateway bota aqui
-        return cobranca
+        serializer.save(
+            codigo_gateway=(
+                CobrancaService.gerar_codigo_gateway()
+            )
+        )
