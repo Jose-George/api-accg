@@ -1,36 +1,66 @@
 from rest_framework import serializers
+
 from .models import PlanoDeContas
 
-class PlanoDeContasSerializer(serializers.ModelSerializer):
 
+class PlanoDeContasSerializer(
+    serializers.ModelSerializer
+):
     class Meta:
         model = PlanoDeContas
         fields = [
-            'id',
-            'codigo',
-            'descricao',
-            'tipo',
-            'categoria',
-            'ativo',
-            'observacoes',
-            'data_cadastro',
-            'data_atualizacao',
+            "id",
+            "codigo",
+            "descricao",
+            "tipo",
+            "categoria",
+            "ativo",
+            "observacoes",
+            "data_cadastro",
+            "data_atualizacao",
         ]
+        read_only_fields = [
+            "id",
+            "data_cadastro",
+            "data_atualizacao",
+        ]
+        extra_kwargs = {
+            "codigo": {
+                "validators": [],
+            },
+        }
 
     def validate_codigo(self, value):
-        if self.instance is None:
-            if PlanoDeContas.objects.filter(codigo=value).exists():
-                raise serializers.ValidationError("Código já existe")
-        return value
+        value = value.strip()
 
-    def validate_tipo(self, value):
-
-        tipos_validos = dict(self.Meta.model.TIPO_CHOICES).keys()
-
-        if value not in tipos_validos:
+        if not value:
             raise serializers.ValidationError(
-                f"Tipo deve ser um dos seguintes: {', '.join(tipos_validos)}"
+                "O código não pode ficar vazio."
             )
+
+        queryset = PlanoDeContas.objects.filter(
+            codigo=value
+        )
+
+        if self.instance:
+            queryset = queryset.exclude(
+                pk=self.instance.pk
+            )
+
+        if queryset.exists():
+            raise serializers.ValidationError(
+                "Já existe um plano de contas "
+                "com este código."
+            )
+
         return value
 
+    def validate_descricao(self, value):
+        value = value.strip()
 
+        if not value:
+            raise serializers.ValidationError(
+                "A descrição não pode ficar vazia."
+            )
+
+        return value
